@@ -12,7 +12,7 @@ docker run -d \
 --name "$APPNAME" \
 --privileged \
 -v $DATADIR:/data \
--p 127.0.0.1:3000:3000 \
+-p 3000:3000 \
 -p 7822:7822 \
 --restart=always \
 gitea/gitea:latest

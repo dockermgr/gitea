@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 mkdir -p /srv/docker/gitea && chmod -Rf 777 /srv/docker/gitea
 
 docker run -d --name gitea \

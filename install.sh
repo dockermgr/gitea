@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
 
-mkdir -p /srv/docker/gitea && chmod -Rf 777 /srv/docker/gitea
+APPNAME="gitea"
+DATADIR="/srv/docker/$APPNAME"
 
-docker run -d --name gitea \
+mkdir -p "$DATADIR" && chmod -Rf 777 "$DATADIR"
+
+if docker ps -a | grep "$APPNAME" >/dev/null 2>&1; then
+docker pull gitea/gitea:latest && docker restart $APPNAME
+else
+docker run -d \
+--name "$APPNAME" \
 --privileged \
--v /srv/docker/gitea:/data \
+-v $DATADIR:/data \
 -p 127.0.0.1:3000:3000 \
 -p 7822:7822 \
 --restart=always \
-registry.casjay.in/latest/gitea:latest
+gitea/gitea:latest
+fi

@@ -45,14 +45,15 @@ __options "$@"
 APPNAME="gitea"
 DOCKER_HUB_URL="gitea/gitea"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-APPDIR="${APPDIR:-/usr/local/share/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
-INSTDIR="${INSTDIR:-/usr/local/share/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME}"
-DATADIR="${DATADIR:-/srv/docker/$APPNAME}"
+APPDIR="/usr/local/share/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
+INSTDIR="/usr/local/share/CasjaysDev/$SCRIPTS_PREFIX/$APPNAME"
+DATADIR="/srv/docker/$APPNAME"
 REPORAW="$REPO/raw/$GIT_DEFAULT_BRANCH"
 APPVERSION="$(__appversion "$REPORAW/version.txt")"
 TIMEZONE="${TZ:-$TIMEZONE}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-sudo mkdir -p "$DATADIR"/{data}
+printf_exit "$APPNAME $DATADIR"
+sudo mkdir -p "$DATADIR"/{data,config}
 sudo chmod -Rf 777 "$DATADIR"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if [ -f "$INSTDIR/docker-compose.yml" ]; then
@@ -70,12 +71,13 @@ else
     sudo docker restart "$APPNAME" &>/dev/null
   else
     sudo docker run -d \
-      --name="$APPNAME" \
+      --name "$APPNAME" \
       --hostname "$APPNAME" \
       --restart=unless-stopped \
       --privileged \
       -e TZ=${TIMEZONE:-America/New_York} \
-      -v "$DATADIR/data":/data:z \
+      -v "$DATADIR/data":/var/lib/gitea:z \
+      -v "$DATADIR/config":/etc/gitea:z \
       -p 3000:3000 \
       -p 7822:7822 \
       "$DOCKER_HUB_URL" &>/dev/null

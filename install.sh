@@ -82,6 +82,7 @@ else
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if docker ps -a | grep -qs "$APPNAME"; then
+  printf_blue "Service is available at: http://$HOSTNAME:3000"
   printf_green "Successfully setup gitea"
 else
   printf_return "Could not setup gitea"

@@ -52,7 +52,6 @@ REPORAW="$REPO/raw/$GIT_DEFAULT_BRANCH"
 APPVERSION="$(__appversion "$REPORAW/version.txt")"
 TIMEZONE="${TZ:-$TIMEZONE}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-printf_exit "$APPNAME $DATADIR"
 sudo mkdir -p "$DATADIR"/{data,config}
 sudo chmod -Rf 777 "$DATADIR"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

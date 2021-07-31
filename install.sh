@@ -59,13 +59,11 @@ if [ -f "$INSTDIR/docker-compose.yml" ]; then
   printf_blue "Installing containers using docker compose"
   sed -i "s|REPLACE_DATADIR|$DATADIR" "$INSTDIR/docker-compose.yml"
   if cd "$INSTDIR"; then
-    sudo docker rm "$APPNAME" -f &>/dev/null
     sudo docker-compose pull &>/dev/null
     sudo docker-compose up -d &>/dev/null
   fi
 else
   if docker ps -a | grep -qs "$APPNAME"; then
-    sudo docker rm "$APPNAME" -f &>/dev/null
     sudo docker pull "$DOCKER_HUB_URL" &>/dev/null
     sudo docker restart "$APPNAME" &>/dev/null
   else
@@ -75,7 +73,7 @@ else
       --restart=unless-stopped \
       --privileged \
       -e TZ=${TIMEZONE:-America/New_York} \
-      -v "$DATADIR/data":/var/lib/gitea:z \
+      -v "$DATADIR/data":/data:z \
       -v "$DATADIR/config":/etc/gitea:z \
       -p 3000:3000 \
       -p 7822:7822 \

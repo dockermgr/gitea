@@ -148,7 +148,7 @@ else
     -v "$DATADIR/config":/etc/gitea \
     -p $SERVER_PORT_OTHER:$SERVER_PORT_OTHER_INT \
     -p $SERVER_IP:$SERVER_PORT:$SERVER_PORT_INT \
-    "$HUB_URL" 1>/dev/null
+    "$HUB_URL" &>/dev/null
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Install nginx proxy
@@ -159,7 +159,7 @@ if [[ ! -f "/etc/nginx/vhosts.d/$APPNAME.conf" ]] && [[ -f "$APPDIR/nginx/proxy.
     sed -i "s|REPLACE_APPNAME|$APPNAME|g" "/etc/nginx/vhosts.d/$APPNAME.conf"
     sed -i "s|REPLACE_SERVER_HOST|$SERVER_HOST|g" "/etc/nginx/vhosts.d/$APPNAME.conf"
     sed -i "s|REPLACE_SERVER_PORT|$SERVER_PORT|g" "/etc/nginx/vhosts.d/$APPNAME.conf"
-    __sudo_root systemctl reload nginx
+    __sudo_root systemctl reload nginx &>/dev/null
   fi
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

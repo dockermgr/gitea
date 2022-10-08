@@ -1,49 +1,49 @@
-# Welcome to dockermgr gitea installer 👋
+## 👋 Welcome to gitea 🚀  
+
+gitea README  
   
-## A community managed painless self-hosted Git service
   
-### Requires scripts to be installed
+## Run container
 
 ```shell
- sudo bash -c "$(curl -LSs <https://github.com/dockermgr/installer/raw/main/install.sh>)"
- dockermgr --config && dockermgr install scripts  
+dockermgr update gitea
 ```
 
-#### Automatic install/update  
+### via command line
 
 ```shell
-dockermgr install gitea
+docker pull casjaysdevdocker/gitea:latest && \
+docker run -d \
+--restart always \
+--name casjaysdevdocker-gitea \
+--hostname casjaysdev-gitea \
+-e TZ=${TIMEZONE:-America/New_York} \
+-v $HOME/.local/share/srv/docker/gitea/files/data:/data:z \
+-v $HOME/.local/share/srv/docker/gitea/files/config:/config:z \
+-p 80:3000 \
+casjaysdevdocker/gitea:latest
 ```
 
+### via docker-compose
 
-#### Manual install
-
-```shell
-git clone https://github.com/dockermgr/gitea "$HOME/.local/share/CasjaysDev/dockermgr/gitea"
-bash -c "$HOME/.local/share/CasjaysDev/dockermgr/gitea/install.sh"
-```
-  
-#### Just run it
-
-```shell
-mkdir -p "$HOME/.local/share/srv/docker/gitea/"
-
-git clone <https://github.com/dockermgr/gitea> "$HOME/.local/share/CasjaysDev/dockermgr/gitea"
-
-cp -Rfva "$HOME/.local/share/srv/docker/gitea/dataDir/." "$HOME/.local/share/srv/docker/gitea/"
-
-sudo docker run -d \
---name="gitea" \
---hostname "gitea" \
---restart=unless-stopped \
---privileged \
--e TZ="${TZ:-${TIMEZONE:-America/New_York}}" \
--v "$HOME/.local/share/srv/docker/gitea/data":/data:z \
--v "$HOME/.local/share/srv/docker/gitea/config":/config:z \
--p PORT:INT_PORT \
-TEMPLATE/TEMPLATE &>/dev/null
+```yaml
+version: "2"
+services:
+  gitea:
+    image: casjaysdevdocker/gitea
+    container_name: gitea
+    environment:
+      - TZ=America/New_York
+      - HOSTNAME=casjaysdev-gitea
+    volumes:
+      - $HOME/.local/share/srv/docker/gitea/files/data:/data:z
+      - $HOME/.local/share/srv/docker/gitea/files/config:/config:z
+    ports:
+      - 80:3000
+    restart: always
 ```
 
-## Author  
+## Authors  
 
-👤 **Jason Hempstead**  
+🤖 casjay: [Github](https://github.com/casjay) [Docker](https://hub.docker.com/r/casjay) 🤖  
+⛵ CasjaysDevDocker: [Github](https://github.com/casjaysdevdocker) [Docker](https://hub.docker.com/r/casjaysdevdocker) ⛵  

@@ -2324,20 +2324,21 @@ if [ "$CONTAINER_INSTALLED" = "true" ] || __docker_ps_all -q; then
             __printf_spacing_file "40" "$CONTAINER_WEB_SERVER_LISTEN_ON" "$vhost" | sudo tee -p -a "/etc/hosts" &>/dev/null
           fi
         fi
+        show_hosts_message_banner="true"
       done
-      show_hosts_message_banner="true"
     fi
     if [ -n "$HOST_NGINX_INTERNAL_DOMAIN" ]; then
       if ! grep -sq " $HOST_NGINX_INTERNAL_DOMAIN$" "/etc/hosts"; then
         __printf_spacing_color "44" "40" "Adding to /etc/hosts:" "$HOST_NGINX_INTERNAL_DOMAIN $HOST_LISTEN_ADDR"
         __printf_spacing_file "40" "$HOST_LISTEN_ADDR" "$HOST_NGINX_INTERNAL_DOMAIN" | sudo tee -p -a "/etc/hosts" &>/dev/null
+        show_hosts_message_banner="true"
       fi
     fi
     if ! grep -sq " $CONTAINER_HOSTNAME$" "/etc/hosts"; then
       __printf_spacing_color "44" "40" "Adding to /etc/hosts:" "$CONTAINER_HOSTNAME $HOST_LISTEN_ADDR"
       __printf_spacing_file "40" "$HOST_LISTEN_ADDR" "$CONTAINER_HOSTNAME" | sudo tee -p -a "/etc/hosts" &>/dev/null
+      show_hosts_message_banner="true"
     fi
-    show_hosts_message_banner="true"
     [ "$show_hosts_message_banner" = "true" ] && printf '# - - - - - - - - - - - - - - - - - - - - - - - - - -\n'
     unset show_hosts_message_banner
   fi
@@ -2530,10 +2531,7 @@ if [ "$CONTAINER_INSTALLED" = "true" ] || __docker_ps_all -q; then
     __printf_color "2" "$POST_SHOW_FINISHED_MESSAGE"
     printf '# - - - - - - - - - - - - - - - - - - - - - - - - - -\n'
   fi
-  characters=${#APPNAME}
-  spacing=$((characters))
-  install_dir=$(printf "%-${spacing}s" "" "$APPDIR")
-  __printf_spacing_color "6" "40" "$APPNAME has been installed to:" "$install_dir"
+  __printf_spacing_color "6" "40" "$APPNAME has been installed to:" "$APPDIR"
   printf '# - - - - - - - - - - - - - - - - - - - - - - - - - -\n\n'
   __show_post_message
 else

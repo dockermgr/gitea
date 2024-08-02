@@ -105,11 +105,11 @@ __printf_spacing_file() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __printf_spacing_color() {
   pad=$(printf '%0.1s' " "{1..60})
-  padlength=$1
-  color=$2
+  color=$1
+  padlength=$2
   string1="$3"
   string2="$4"
-  printf '%b%s' "$(tput setaf "${color:?Please set color number}" 2>/dev/null)" "$string1"
+  printf '%b' "$(tput setaf "${color:?Please set color number}" 2>/dev/null)$string1"
   printf '%*.*s' 0 $((padlength - ${#string1} - ${#string2})) "$pad"
   printf '%s%b\n' "$string2" "$(tput sgr0 2>/dev/null)"
   string2=${string2:1}

@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version           :  202408021428-git
+##@Version           :  202408021541-git
 # @@Author           :  Jason Hempstead
 # @@Contact          :  jason@casjaysdev.pro
 # @@License          :  LICENSE.md
 # @@ReadME           :  install.sh --help
 # @@Copyright        :  Copyright: (c) 2024 Jason Hempstead, Casjays Developments
-# @@Created          :  Friday, Aug 02, 2024 14:28 EDT
+# @@Created          :  Friday, Aug 02, 2024 15:41 EDT
 # @@File             :  install.sh
 # @@Description      :  Container installer script for gitea
 # @@Changelog        :  New script
@@ -27,7 +27,7 @@
 # shellcheck disable=SC2317
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="gitea"
-VERSION="202408021428-git"
+VERSION="202408021541-git"
 REPO_BRANCH="${GIT_REPO_BRANCH:-main}"
 HOME="${USER_HOME:-$HOME}"
 USER="${SUDO_USER:-$USER}"
@@ -92,8 +92,28 @@ dockermgr_req_version "$APPVERSION"
 __sudo_root() { [ "$DOCKERMGR_USER_CAN_SUDO" = "true" ] && sudo "$@" || { [ "$USER" = "root" ] && eval "$*"; } || eval "$*" 2>/dev/null || return 1; }
 __sudo_exec() { [ "$DOCKERMGR_USER_CAN_SUDO" = "true" ] && sudo -HE "$@" || { [ "$USER" = "root" ] && eval "$*"; } || eval "$*" 2>/dev/null || return 1; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__printf_spacing_file() { printf "%-${1:-30}s%s\n" "${2}" "${3}"; }
-__printf_spacing_color() { printf "%b%-${2:?Please set spacing number}s%s%b\n" "$(tput setaf "${1:?Please set color number}" 2>/dev/null)" "${3:?Please set left content}" "${4:- }" "$(tput sgr0 2>/dev/null)"; }
+__printf_spacing_file() {
+  pad=$(printf '%0.1s' " "{1..60})
+  padlength=$1
+  string1="$2"
+  string2="$3"
+  printf '%s' "$string1"
+  printf '%*.*s' 0 $((padlength - ${#string1} - ${#string2})) "$pad"
+  printf '%s\n' "$string2"
+  string2=${string2:1}
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__printf_spacing_color() {
+  pad=$(printf '%0.1s' " "{1..60})
+  padlength=$1
+  color=$2
+  string1="$3"
+  string2="$4"
+  printf '%b%s' "$(tput setaf "${color:?Please set color number}" 2>/dev/null)" "$string1"
+  printf '%*.*s' 0 $((padlength - ${#string1} - ${#string2})) "$pad"
+  printf '%s%b\n' "$string2" "$(tput sgr0 2>/dev/null)"
+  string2=${string2:1}
+}
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __cmd_exists() { type -P $1 &>/dev/null || return 1; }
 __remove_extra_spaces() { sed 's/\( \)*/\1/g;s|^ ||g'; }
@@ -355,10 +375,10 @@ HOST_NGINX_UPDATE_CONF="yes"
 HOST_NGINX_EXTERNAL_DOMAIN=""
 HOST_NGINX_INTERNAL_DOMAIN=""
 HOST_NGINX_INTERNAL_HOST=""
-HOST_NGINX_VIRTUAL_HOST_NAME="casjay.work"
+HOST_NGINX_VIRTUAL_HOST_NAME=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Enable this if container is running a webserver - [yes/no] [internalPort] [yes/no] [yes/no] [listen]
-CONTAINER_WEB_SERVER_ENABLED="yes"
+CONTAINER_WEB_SERVER_ENABLED="no"
 CONTAINER_WEB_SERVER_INT_PORT="80"
 CONTAINER_WEB_SERVER_SSL_ENABLED="no"
 CONTAINER_WEB_SERVER_AUTH_ENABLED="no"
@@ -367,7 +387,7 @@ CONTAINER_WEB_SERVER_INT_PATH="/"
 CONTAINER_WEB_SERVER_EXT_PATH="/"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Specify custom nginx vhosts - autoconfigure: [all.name/name.all/name.mydomain/name.myhost] - [virtualhost,othervhostdom]
-CONTAINER_WEB_SERVER_VHOSTS="git.all"
+CONTAINER_WEB_SERVER_VHOSTS="git.all,gitea.all"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Add random portmapping - [port,otherport] or [proxy|/location|port]
 CONTAINER_ADD_RANDOM_PORTS=""
@@ -475,7 +495,7 @@ DOCKER_CAP_NET_RAW="yes"
 DOCKER_CAP_SYS_NICE="no"
 DOCKER_CAP_NET_ADMIN="yes"
 DOCKER_CAP_SYS_MODULE="no"
-DOCKER_CAP_NET_BIND_SERVICE="no"
+DOCKER_CAP_NET_BIND_SERVICE="yes"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define labels - [traefik.enable=true,label=label,otherlabel=label2]
 CONTAINER_LABELS=""
@@ -979,6 +999,7 @@ CONTAINER_SSL_KEY="${CONTAINER_SSL_KEY:-$CONTAINER_SSL_DIR/localhost.key}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 CONTAINER_DOMAINNAME="${HOST_NGINX_EXTERNAL_DOMAIN:-$CONTAINER_DOMAINNAME}"
 HOST_NGINX_VIRTUAL_HOST_NAME="${HOST_NGINX_VIRTUAL_HOST_NAME:-$CONTAINER_HOSTNAME}"
+CONTAINER_NGINX_PROXY_URL="${CONTAINER_NGINX_PROXY_URL=$NGINX_PROXY_URL}"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Setup ssl certs
 if [ "$CONTAINER_WEB_SERVER_SSL_ENABLED" = "true" ]; then
@@ -1833,7 +1854,8 @@ if [ "$CONTAINER_WEB_SERVER_ENABLED" = "yes" ] && { [ -n "$CONTAINER_ADD_RANDOM_
   CONTAINER_WEB_SERVER_LISTEN_ON="${CONTAINER_WEB_SERVER_LISTEN_ON:-}"
   CONTAINER_ADD_RANDOM_PORTS="${CONTAINER_ADD_RANDOM_PORTS//,/ }"
   CONTAINER_WEB_SERVER_INT_PORT="${CONTAINER_WEB_SERVER_INT_PORT//,/ }"
-  [ "$HOST_NGINX_VIRTUAL_HOST_NAME" = "$CONTAINER_HOSTNAME" ] || HOST_NGINX_VIRTUAL_HOST_NAME="$(__trim "$HOST_NGINX_VIRTUAL_HOST_NAME" "$CONTAINER_HOSTNAME")"
+  HOST_NGINX_VIRTUAL_HOST_NAME="$(__trim "$HOST_NGINX_VIRTUAL_HOST_NAME" "$CONTAINER_HOSTNAME" "$CONTAINER_WEB_SERVER_VHOSTS" | sort -u)"
+  HOST_NGINX_VIRTUAL_HOST_NAME="${HOST_NGINX_VIRTUAL_HOST_NAME// /,}"
   for set_port in $CONTAINER_WEB_SERVER_INT_PORT $CONTAINER_ADD_RANDOM_PORTS; do
     if [ "$set_port" != " " ] && [ -n "$set_port" ]; then
       proxy_url=""
@@ -1856,7 +1878,7 @@ if [ "$CONTAINER_WEB_SERVER_ENABLED" = "yes" ] && { [ -n "$CONTAINER_ADD_RANDOM_
         if [ -n "$proxy_url" ] && [ -n "$proxy_location" ]; then
           if [ -n "$set_hostname" ]; then
             NGINX_CUSTOM_CONFIG="true"
-            echo "$set_hostname" | grep -qF '.' || set_hostname="$HOST_NGINX_VIRTUAL_HOST_NAME $set_hostname"
+            echo "$set_hostname" | grep -qF '.' || set_hostname="$set_hostname "
             cat <<EOF | tee -p -a "$NGINX_VHOSTS_PROXY_FILE_TMP" &>/dev/null
 server {
   listen                                    443 ssl http2;
@@ -2162,8 +2184,7 @@ if [ "$INIT_SCRIPT_ONLY" = "false" ] && [ -n "$EXECUTE_DOCKER_SCRIPT" ]; then
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Install nginx proxy
-NGINX_PROXY_URL="${CONTAINER_NGINX_PROXY_URL:-${NGNIX_REVERSE_ADDRESS:-$NGINX_PROXY_URL}}"
-CONTAINER_NGINX_PROXY_URL="$NGINX_PROXY_URL"
+[ -n "$CONTAINER_NGINX_PROXY_URL" ] && NGINX_PROXY_URL="$CONTAINER_NGINX_PROXY_URL"
 if [ "$USER" = "root" ]; then
   [ -d "$NGINX_DIR" ] && NINGX_VHOSTS_WRITABLE="true"
 else
@@ -2172,6 +2193,7 @@ fi
 if [ "$NINGX_VHOSTS_WRITABLE" = "true" ]; then
   NGINX_VHOST_TMP_NAMES=()
   NGINX_VHOST_ENABLED="true"
+  CONTAINER_WEB_SERVER_VHOSTS="$HOST_NGINX_VIRTUAL_HOST_NAME"
   NGINX_VHOST_SET_NAMES="${CONTAINER_WEB_SERVER_VHOSTS//,/ }"
   NGINX_CONFIG_NAME="${CONTAINER_WEB_SERVER_CONFIG_NAME:-$CONTAINER_HOSTNAME}"
   NGINX_MAIN_CONFIG="$NGINX_DIR/vhosts.d/$NGINX_CONFIG_NAME.conf"
@@ -2317,6 +2339,7 @@ if [ "$CONTAINER_INSTALLED" = "true" ] || __docker_ps_all -q; then
   printf '# - - - - - - - - - - - - - - - - - - - - - - - - - -\n'
   if [ "$HOSTS_WRITABLE" = "true" ]; then
     if [ -n "$NGINX_VHOST_NAMES" ]; then
+      show_hosts_message_banner="false"
       NGINX_VHOST_NAMES="${NGINX_VHOST_NAMES//,/ }"
       for vhost in $NGINX_VHOST_NAMES; do
         if ! grep -sq " $vhost$" "/etc/hosts"; then
@@ -2532,7 +2555,10 @@ if [ "$CONTAINER_INSTALLED" = "true" ] || __docker_ps_all -q; then
     __printf_color "2" "$POST_SHOW_FINISHED_MESSAGE"
     printf '# - - - - - - - - - - - - - - - - - - - - - - - - - -\n'
   fi
-  __printf_spacing_color "6" "40" "$APPNAME has been installed to:" "$APPDIR"
+  characters=${#APPNAME}
+  spacing=$((characters))
+  install_dir=$(printf "%-${spacing}s" "" "$APPDIR")
+  __printf_spacing_color "6" "40" "$APPNAME has been installed to:" "$install_dir"
   printf '# - - - - - - - - - - - - - - - - - - - - - - - - - -\n\n'
   __show_post_message
 else

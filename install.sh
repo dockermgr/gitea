@@ -366,7 +366,7 @@ CONTAINER_WEB_SERVER_INT_PATH="/"
 CONTAINER_WEB_SERVER_EXT_PATH="/"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Specify custom nginx vhosts - autoconfigure: [all.name/name.all/name.mydomain/name.myhost] - [virtualhost,othervhostdom]
-CONTAINER_WEB_SERVER_VHOSTS="git.casjaysdev.pro git.all"
+CONTAINER_WEB_SERVER_VHOSTS="casjay.work git.all"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Add random portmapping - [port,otherport] or [proxy|/location|port]
 CONTAINER_ADD_RANDOM_PORTS=""
@@ -2156,7 +2156,7 @@ if [ "$INIT_SCRIPT_ONLY" = "false" ] && [ -n "$EXECUTE_DOCKER_SCRIPT" ]; then
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Install nginx proxy
-NGINX_PROXY_URL="${CONTAINER_NGINX_PROXY_URL:-NGINX_PROXY_URL}"
+NGINX_PROXY_URL="${CONTAINER_NGINX_PROXY_URL:-$NGINX_PROXY_URL}"
 if [ "$USER" = "root" ]; then
   [ -d "$NGINX_DIR" ] && NINGX_VHOSTS_WRITABLE="true"
 else

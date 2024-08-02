@@ -2231,7 +2231,7 @@ if [ "$NINGX_VHOSTS_WRITABLE" = "true" ]; then
           NGINX_VHOST_TMP_NAMES+=("$set_vhost")
           set_vhost=""
         else
-          NGINX_VHOST_TMP_NAMES+=("${set_vhost:-$vhost}")
+          NGINX_VHOST_TMP_NAMES+=("$vhost")
         fi
       fi
     done

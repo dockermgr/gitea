@@ -95,22 +95,24 @@ __sudo_exec() { [ "$DOCKERMGR_USER_CAN_SUDO" = "true" ] && sudo -HE "$@" || { [ 
 __printf_spacing_file() {
   pad=$(printf '%0.1s' " "{1..60})
   padlength=$1
-  string1="$(__trim "$2")"
-  string2="$(__trim "$3")"
+  string1="$2"
+  string2="$3"
   printf '%s' "$string1"
   printf '%*.*s' 0 $((padlength - ${#string1} - ${#string2})) "$pad"
   printf '%s\n' "$string2"
+  string2=${string2:1}
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __printf_spacing_color() {
   pad=$(printf '%0.1s' " "{1..60})
-  color=$1
-  padlength=$2
-  string1="$(__trim "$3")"
-  string2="$(__trim "$4")"
-  printf '%b%s' "$(tput setaf "${color:?Please set color number}" 2>/dev/null)" "$string1"
+  color="$1" && shift 1
+  padlength=$1
+  string1="$2"
+  string2="$3"
+  printf '%s' "$string1"
   printf '%*.*s' 0 $((padlength - ${#string1} - ${#string2})) "$pad"
-  printf '%s%b\n' "$string2" "$(tput sgr0 2>/dev/null)"
+  printf '%s\n' "$string2"
+  string2=${string2:1}
 }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __cmd_exists() { type -P $1 &>/dev/null || return 1; }

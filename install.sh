@@ -109,7 +109,7 @@ __printf_spacing_color() {
   color=$2
   string1="$3"
   string2="$4"
-  printf '%b%s' "$(tput setaf "${1:?Please set color number}" 2>/dev/null)" "$string1"
+  printf '%b%s' "$(tput setaf "${color:?Please set color number}" 2>/dev/null)" "$string1"
   printf '%*.*s' 0 $((padlength - ${#string1} - ${#string2})) "$pad"
   printf '%s%b\n' "$string2" "$(tput sgr0 2>/dev/null)"
   string2=${string2:1}

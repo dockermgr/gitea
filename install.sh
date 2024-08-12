@@ -328,7 +328,7 @@ HOST_PROC_MOUNT_ENABLED="no"
 HOST_MODULES_MOUNT_ENABLED="no"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set container hostname and domain - Default: [gitea.$SET_HOST_FULL_NAME] [$SET_HOST_FULL_DOMAIN]
-CONTAINER_HOSTNAME="gist"
+CONTAINER_HOSTNAME="git"
 CONTAINER_DOMAINNAME="casjay.work"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set the network type - default is bridge - [bridge/host]
@@ -366,7 +366,7 @@ CONTAINER_WEB_SERVER_INT_PATH="/"
 CONTAINER_WEB_SERVER_EXT_PATH="/"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Specify custom nginx vhosts - autoconfigure: [all.name/name.all/name.mydomain/name.myhost] - [virtualhost,othervhostdom]
-CONTAINER_WEB_SERVER_VHOSTS="gist.all"
+CONTAINER_WEB_SERVER_VHOSTS="git.all"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Add random portmapping - [port,otherport] or [proxy|/location|port]
 CONTAINER_ADD_RANDOM_PORTS=""

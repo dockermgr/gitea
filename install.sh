@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version           :  202408112153-git
+##@Version           :  202408112230-git
 # @@Author           :  Jason Hempstead
 # @@Contact          :  jason@casjaysdev.pro
 # @@License          :  LICENSE.md
 # @@ReadME           :  install.sh --help
 # @@Copyright        :  Copyright: (c) 2024 Jason Hempstead, Casjays Developments
-# @@Created          :  Sunday, Aug 11, 2024 21:53 EDT
+# @@Created          :  Sunday, Aug 11, 2024 22:30 EDT
 # @@File             :  install.sh
 # @@Description      :  Container installer script for gitea
 # @@Changelog        :  New script
@@ -27,7 +27,7 @@
 # shellcheck disable=SC2317
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="gitea"
-VERSION="202408112153-git"
+VERSION="202408112230-git"
 REPO_BRANCH="${GIT_REPO_BRANCH:-main}"
 HOME="${USER_HOME:-$HOME}"
 USER="${SUDO_USER:-$USER}"
@@ -357,7 +357,7 @@ HOST_NGINX_INTERNAL_DOMAIN=""
 HOST_NGINX_INTERNAL_HOST=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Enable this if container is running a webserver - [yes/no] [internalPort] [yes/no] [yes/no] [listen]
-CONTAINER_WEB_SERVER_ENABLED="yes"
+CONTAINER_WEB_SERVER_ENABLED="no"
 CONTAINER_WEB_SERVER_INT_PORT="80"
 CONTAINER_WEB_SERVER_SSL_ENABLED="no"
 CONTAINER_WEB_SERVER_AUTH_ENABLED="no"
@@ -366,13 +366,13 @@ CONTAINER_WEB_SERVER_INT_PATH="/"
 CONTAINER_WEB_SERVER_EXT_PATH="/"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Specify custom nginx vhosts - autoconfigure: [all.name/name.all/name.mydomain/name.myhost] - [virtualhost,othervhostdom]
-CONTAINER_WEB_SERVER_VHOSTS="casjay.work git.all"
+CONTAINER_WEB_SERVER_VHOSTS="git.all"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Add random portmapping - [port,otherport] or [proxy|/location|port]
 CONTAINER_ADD_RANDOM_PORTS=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Add custom port -  [exter:inter] or [.all:exter:inter/[tcp,udp] [listen:exter:inter/[tcp,udp]] random:[inter]
-CONTAINER_ADD_CUSTOM_PORT=".all:7833"
+CONTAINER_ADD_CUSTOM_PORT=".all:7833:7833"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # mail settings - [yes/no] [user] [domainname] [server]
 CONTAINER_EMAIL_ENABLED=""
@@ -1801,9 +1801,15 @@ if [ -n "$CONTAINER_OPT_PORT_VAR" ] || [ -n "$CONTAINER_ADD_CUSTOM_PORT" ]; then
         new_port="${new_port//random:/}"
         port="$random_port:${new_port//*:/}"
       elif echo "$new_port" | grep -q '\.all:[0-9]'; then
-        port="${new_port//.all/}"
-        if ! echo "$new_port" | grep -q '.*[0-9]:[0-9]'; then
-          port="$port:$port"
+        if echo "$new_port" | grep -q ':.*[0-9]:[0-9]'; then
+          new_port="${new_port//.all:/}"
+          port=$new_port
+        elif echo "$new_port" | grep -q '^.*[0-9]:[0-9]'; then
+          new_port="${new_port//.all:/}"
+          port=$new_port
+        else
+          new_port="${new_port//.all:/}"
+          port="$new_port:$new_port"
         fi
         set_listen_addr="false"
       elif echo "$new_port" | grep -q ':.*[0-9]:[0-9]'; then

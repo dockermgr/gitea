@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version           :  202408112138-git
+##@Version           :  202408112153-git
 # @@Author           :  Jason Hempstead
 # @@Contact          :  jason@casjaysdev.pro
 # @@License          :  LICENSE.md
 # @@ReadME           :  install.sh --help
 # @@Copyright        :  Copyright: (c) 2024 Jason Hempstead, Casjays Developments
-# @@Created          :  Sunday, Aug 11, 2024 21:38 EDT
+# @@Created          :  Sunday, Aug 11, 2024 21:53 EDT
 # @@File             :  install.sh
 # @@Description      :  Container installer script for gitea
 # @@Changelog        :  New script
@@ -27,7 +27,7 @@
 # shellcheck disable=SC2317
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="gitea"
-VERSION="202408112138-git"
+VERSION="202408112153-git"
 REPO_BRANCH="${GIT_REPO_BRANCH:-main}"
 HOME="${USER_HOME:-$HOME}"
 USER="${SUDO_USER:-$USER}"
@@ -328,7 +328,7 @@ HOST_PROC_MOUNT_ENABLED="no"
 HOST_MODULES_MOUNT_ENABLED="no"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set container hostname and domain - Default: [gitea.$SET_HOST_FULL_NAME] [$SET_HOST_FULL_DOMAIN]
-CONTAINER_HOSTNAME="git.casjay.work"
+CONTAINER_HOSTNAME="git"
 CONTAINER_DOMAINNAME="casjay.work"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set the network type - default is bridge - [bridge/host]
@@ -341,7 +341,7 @@ HOST_DOCKER_LINK=""
 HOST_NETWORK_ADDR="all"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set this to the protocol the the container will use - [http/https/git/ftp/postgres/mysql/mongodb]
-CONTAINER_PROTOCOL="https"
+CONTAINER_PROTOCOL="http"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set containers dns [127.0.0.1,1.1.1.1,8.8.8.8]
 CONTAINER_DNS=""
@@ -372,7 +372,7 @@ CONTAINER_WEB_SERVER_VHOSTS="casjay.work git.all"
 CONTAINER_ADD_RANDOM_PORTS=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Add custom port -  [exter:inter] or [.all:exter:inter/[tcp,udp] [listen:exter:inter/[tcp,udp]] random:[inter]
-CONTAINER_ADD_CUSTOM_PORT=".all:7833:7833"
+CONTAINER_ADD_CUSTOM_PORT="all:7833"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # mail settings - [yes/no] [user] [domainname] [server]
 CONTAINER_EMAIL_ENABLED=""
@@ -1803,9 +1803,9 @@ if [ -n "$CONTAINER_OPT_PORT_VAR" ] || [ -n "$CONTAINER_ADD_CUSTOM_PORT" ]; then
       elif echo "$new_port" | grep -q '\.all:[0-9]'; then
         port="${new_port//.all/}"
         if echo "$new_port" | grep -q ':.*[0-9]:[0-9]'; then
-          port="[::]$port"
+          port="$port"
         else
-          port="[::]$port:$port"
+          port="$port:$port"
         fi
         set_listen_addr="false"
       elif echo "$new_port" | grep -q ':.*[0-9]:[0-9]'; then

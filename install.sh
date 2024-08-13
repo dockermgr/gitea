@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version           :  202408121900-git
+##@Version           :  202408122008-git
 # @@Author           :  Jason Hempstead
 # @@Contact          :  jason@casjaysdev.pro
 # @@License          :  LICENSE.md
 # @@ReadME           :  install.sh --help
 # @@Copyright        :  Copyright: (c) 2024 Jason Hempstead, Casjays Developments
-# @@Created          :  Monday, Aug 12, 2024 19:00 EDT
+# @@Created          :  Monday, Aug 12, 2024 20:08 EDT
 # @@File             :  install.sh
 # @@Description      :  Container installer script for gitea
 # @@Changelog        :  New script
@@ -27,7 +27,7 @@
 # shellcheck disable=SC2317
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="gitea"
-VERSION="202408121900-git"
+VERSION="202408122008-git"
 REPO_BRANCH="${GIT_REPO_BRANCH:-main}"
 HOME="${USER_HOME:-$HOME}"
 USER="${SUDO_USER:-$USER}"
@@ -372,7 +372,7 @@ CONTAINER_WEB_SERVER_VHOSTS="git.all"
 CONTAINER_ADD_RANDOM_PORTS=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Add custom port -  [exter:inter] or [.all:exter:inter/[tcp,udp] [listen:exter:inter/[tcp,udp]] random:[inter]
-CONTAINER_ADD_CUSTOM_PORT=".all:7833:7833"
+CONTAINER_ADD_CUSTOM_PORT=".all:7833:22"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # mail settings - [yes/no] [user] [domainname] [server]
 CONTAINER_EMAIL_ENABLED=""
@@ -1811,7 +1811,9 @@ if [ -n "$CONTAINER_OPT_PORT_VAR" ] || [ -n "$CONTAINER_ADD_CUSTOM_PORT" ]; then
           new_port="${new_port//.all:/}"
           port="$new_port:$new_port"
         fi
+        set_listen_on_all="yes"
         set_listen_addr="false"
+        set_listen_port="$port $set_listen_port"
       elif echo "$new_port" | grep -q ':.*[0-9]:[0-9]'; then
         port="$new_port"
         set_listen_addr="false"
@@ -2491,13 +2493,15 @@ if [ "$CONTAINER_INSTALLED" = "true" ] || __docker_ps_all -q; then
   else
     for service in $SET_PORT; do
       if [ "$service" != "--publish" ] && [ "$service" != " " ] && [ -n "$service" ]; then
-        type=""
-        if echo "$service" | grep -q ":.*.:"; then
+        unset type
+        if [ "$set_listen_on_all" = "yes" ]; then
+          for custom_port in $set_listen_port; do
+            set_host="0.0.0.0"
+            set_port="$(echo "$service" | awk -F ':' '{print $2}')"
+            set_service="$(echo "$service" | awk -F ':' '{print $1}')"
+          done
+        elif echo "$service" | grep -q ":.*.:"; then
           set_host="$(echo "$service" | awk -F ':' '{print $1}')"
-          set_port="$(echo "$service" | awk -F ':' '{print $3}')"
-          set_service="$(echo "$service" | awk -F ':' '{print $2}')"
-        elif echo "$service" | grep -vE '[a-zAZ]|.*:.*:' | grep "^[0-9].*:[0-9]"; then
-          set_host="0.0.0.0"
           set_port="$(echo "$service" | awk -F ':' '{print $3}')"
           set_service="$(echo "$service" | awk -F ':' '{print $2}')"
         else

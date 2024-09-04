@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # shellcheck shell=bash
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-##@Version           :  202408131636-git
+##@Version           :  202409041020-git
 # @@Author           :  Jason Hempstead
 # @@Contact          :  jason@casjaysdev.pro
 # @@License          :  LICENSE.md
 # @@ReadME           :  install.sh --help
 # @@Copyright        :  Copyright: (c) 2024 Jason Hempstead, Casjays Developments
-# @@Created          :  Tuesday, Aug 13, 2024 16:36 EDT
+# @@Created          :  Wednesday, Sep 04, 2024 10:20 EDT
 # @@File             :  install.sh
 # @@Description      :  Container installer script for gitea
 # @@Changelog        :  New script
@@ -27,11 +27,11 @@
 # shellcheck disable=SC2317
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 APPNAME="gitea"
-VERSION="202408131636-git"
+VERSION="202409041020-git"
 REPO_BRANCH="${GIT_REPO_BRANCH:-main}"
-HOME="${USER_HOME:-$HOME}"
 USER="${SUDO_USER:-$USER}"
-RUN_USER="${SUDO_USER:-$USER}"
+RUN_USER="${RUN_USER:-$USER}"
+USER_HOME="${USER_HOME:-$HOME}"
 SCRIPT_SRC_DIR="${BASH_SOURCE%/*}"
 SCRIPTS_PREFIX="dockermgr"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -92,8 +92,23 @@ dockermgr_req_version "$APPVERSION"
 __sudo_root() { [ "$DOCKERMGR_USER_CAN_SUDO" = "true" ] && sudo "$@" || { [ "$USER" = "root" ] && eval "$*"; } || eval "$*" 2>/dev/null || return 1; }
 __sudo_exec() { [ "$DOCKERMGR_USER_CAN_SUDO" = "true" ] && sudo -HE "$@" || { [ "$USER" = "root" ] && eval "$*"; } || eval "$*" 2>/dev/null || return 1; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-__printf_spacing_file() { printf "%-${1:-30}s%s\n" "${2}" "${3}"; }
-__printf_spacing_color() { printf "%b%-${2:?Please set spacing number}s%s%b\n" "$(tput setaf "${1:?Please set color number}" 2>/dev/null)" "${3:?Please set left content}" "${4:- }" "$(tput sgr0 2>/dev/null)"; }
+# printf_space spacing color message value
+__printf_space() {
+  test -n "$1" && test -z "${1//[0-9]/}" && local padl="$1" && shift 1 || local padl="40"
+  test -n "$1" && test -z "${1//[0-9]/}" && local color="$1" && shift 1 || local color="7"
+  local string1="$1"
+  local string2="$2"
+  local pads=$(printf '%0.1s' " "{1..60})
+  local message="$(printf "%b" "$(tput setaf "$color" 2>/dev/null)")"
+  message+="$(printf '%s' "$string1") "
+  message+="$(printf '%*.*s' 0 $((padl - ${#string1} - ${#string2})) "$pads") "
+  message+="$(printf '%s' "$string2") "
+  message+="$(printf '%b\n' "$(tput sgr0 2>/dev/null)")"
+  printf '%s\n' "$message"
+}
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+__printf_spacing_file() { __printf_space "$1" "7" "$2" "$3"; }
+__printf_spacing_color() { __printf_space "$1" "$2" "$3" "$4"; }
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __cmd_exists() { type -P $1 &>/dev/null || return 1; }
 __remove_extra_spaces() { sed 's/\( \)*/\1/g;s|^ ||g'; }
@@ -288,7 +303,7 @@ CONTAINER_ENV_FILE_ENABLED="no"
 CONTAINER_ENV_FILE_MOUNT=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Enable cgroups - [yes/no] [/sys/fs/cgroup]
-CGROUPS_ENABLED="no"
+CGROUPS_ENABLED="yes"
 CGROUPS_MOUNTS=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Set location to resolv.conf - [yes/no] [/etc/resolv.conf]
@@ -299,8 +314,9 @@ HOST_ETC_RESOLVE_INIT_FILE=""
 HOST_ETC_HOSTS_ENABLED="no"
 HOST_ETC_HOSTS_INIT_FILE=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Mount docker socket - [yes/no] [/var/run/docker.sock]
+# Mount docker socket - [yes/no] [/var/run/docker.sock] [yes/no]
 DOCKER_SOCKET_ENABLED="no"
+DOCKER_SOCKER_READONLY="yes"
 DOCKER_SOCKET_MOUNT=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Mount docker config - [yes/no] [~/.docker/config.json] [/root/.docker/config.json]
@@ -403,6 +419,7 @@ CONTAINER_MONGODB_ENABLED="no"
 CONTAINER_COUCHDB_ENABLED="no"
 CONTAINER_POSTGRES_ENABLED="no"
 CONTAINER_SUPABASE_ENABLED="no"
+CONTAINER_DEFAULT_DATABASE_TYPE="sqlite"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Custom database setup - [yes/no] [db_name] [port] [/data/db/$CONTAINER_CUSTOM_DATABASE_NAME] [msql]
 CONTAINER_CUSTOM_DATABASE_ENABLED=""
@@ -470,11 +487,11 @@ DOCKER_CUSTOM_CAP=""
 DOCKER_CAP_SYS_TIME="yes"
 DOCKER_CAP_SYS_ADMIN="yes"
 DOCKER_CAP_CHOWN="yes"
-DOCKER_CAP_NET_RAW="no"
+DOCKER_CAP_NET_RAW="yes"
 DOCKER_CAP_SYS_NICE="no"
-DOCKER_CAP_NET_ADMIN="no"
-DOCKER_CAP_SYS_MODULE="no"
-DOCKER_CAP_NET_BIND_SERVICE="no"
+DOCKER_CAP_NET_ADMIN="yes"
+DOCKER_CAP_SYS_MODULE="yes"
+DOCKER_CAP_NET_BIND_SERVICE="yes"
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Define labels - [traefik.enable=true,label=label,otherlabel=label2]
 CONTAINER_LABELS=""
@@ -493,7 +510,7 @@ CONTAINER_DEBUG_ENABLED="no"
 CONTAINER_DEBUG_OPTIONS=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # additional directories to create - [/config/dir1,/data/dir2]
-CONTAINER_CREATE_DIRECTORY="/data/$APPNAME,/config/$APPNAME"
+CONTAINER_CREATE_DIRECTORY="/data/$APPNAME,/data/logs/$APPNAME,/config/$APPNAME "
 CONTAINER_CREATE_DIRECTORY+=""
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # enable cron jobs
@@ -689,7 +706,7 @@ CONTAINER_DEFAULT_USERNAME="\${ENV_CONTAINER_DEFAULT_USERNAME:-$CONTAINER_DEFAUL
 POST_SHOW_FINISHED_MESSAGE="\${ENV_POST_SHOW_FINISHED_MESSAGE:-$POST_SHOW_FINISHED_MESSAGE}"
 DOCKERMGR_ENABLE_INSTALL_SCRIPT="\${ENV_DOCKERMGR_ENABLE_INSTALL_SCRIPT:-$DOCKERMGR_ENABLE_INSTALL_SCRIPT}"
 # lets reuse settings
-CONTAINER_PUBLISHED_PORT="$CONTAINER_PUBLISHED_PORT"
+CONTAINER_PUBLISHED_PORT="${CONTAINER_PUBLISHED_PORT:-}"
 CONTAINER_NGINX_PROXY_URL="\${CONTAINER_NGINX_PROXY_URL:-$NGINX_PROXY_URL}"
 EOF
 }
@@ -750,8 +767,9 @@ __test_public_reachable() {
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 __create_docker_script() {
   [ -n "$EXECUTE_DOCKER_CMD" ] || return
-  local replace_with="$HUB_IMAGE_URL:$HUB_IMAGE_TAG $CONTAINER_COMMANDS"
-  local exec_docker_cmd="$(echo "$EXECUTE_DOCKER_CMD" | grep -v '^$' | sed 's/ --/\n  --/g;s| -d| -d \\|g' | grep -v '^$' | sed '/  --/ s/$/ \\/' | grep '^')"
+  local replace_with exec_docker_cmd create_docker_script_message_pre create_docker_script_message_post
+  replace_with="$HUB_IMAGE_URL:$HUB_IMAGE_TAG $CONTAINER_COMMANDS"
+  exec_docker_cmd="$(echo "$EXECUTE_DOCKER_CMD" | grep -v '^$' | sed 's/ --/\n  --/g;s| -d| -d \\|g' | grep -v '^$' | sed '/  --/ s/$/ \\/' | grep '^')"
   create_docker_script_message_pre="${create_docker_script_message_pre:-Failed to execute $EXECUTE_PRE_INSTALL}"
   create_docker_script_message_post="${create_docker_script_message_post:-Failed to create $CONTAINER_NAME}"
   cat <<EOF | tee -p "$DOCKERMGR_INSTALL_SCRIPT" >/dev/null
@@ -785,7 +803,6 @@ exit 0
 # end script
 
 EOF
-  unset create_docker_script_message_pre create_docker_script_message_post
   [ -f "$DOCKERMGR_INSTALL_SCRIPT" ] || return 1
   sed -i 's| '$HUB_IMAGE_URL':'$HUB_IMAGE_TAG' .*\\| \\|g' "$DOCKERMGR_INSTALL_SCRIPT"
   chmod -Rf 755 "$DOCKERMGR_INSTALL_SCRIPT"
@@ -1162,11 +1179,16 @@ fi
 if [ "$DOCKER_SOCKET_ENABLED" = "yes" ]; then
   if [ -z "$DOCKER_SOCKET_MOUNT" ]; then
     if [ -e "/var/run/docker.sock" ]; then
-      DOCKER_SET_OPTIONS+=("--volume /var/run/docker.sock:/var/run/docker.sock")
+      DOCKER_SOCKET_TMP_MOUNT="/var/run/docker.sock:/var/run/docker.sock"
     elif [ -e "$DOCKER_SOCKET_MOUNT" ]; then
-      DOCKER_SET_OPTIONS+=("--volume $DOCKER_SOCKET_MOUNT:/var/run/docker.sock")
+      DOCKER_SOCKET_TMP_MOUNT="$DOCKER_SOCKET_MOUNT:/var/run/docker.sock"
     fi
   fi
+  if [ "$DOCKER_SOCKER_READONLY" = "yes" ]; then
+    DOCKER_SOCKET_TMP_MOUNT="$DOCKER_SOCKET_TMP_MOUNT:ro"
+  fi
+  DOCKER_SET_OPTIONS+=("--volume $DOCKER_SOCKET_TMP_MOUNT")
+  unset DOCKER_SOCKET_TMP_MOUNT
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Mount docker config in the container
@@ -1454,6 +1476,9 @@ if [ "$CONTAINER_IS_TIME_SERVER" = "yes" ]; then
 fi
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Database setup
+if [ -n "$CONTAINER_DEFAULT_DATABASE_TYPE" ]; then
+  DOCKER_SET_OPTIONS+=("--env CONTAINER_DEFAULT_DATABASE_TYPE=$CONTAINER_DEFAULT_DATABASE_TYPE")
+fi
 if [ -z "$CONTAINER_DATABASE_LISTEN" ]; then
   CONTAINER_DATABASE_LISTEN="0.0.0.0"
 fi
@@ -2157,7 +2182,10 @@ if [ "$INIT_SCRIPT_ONLY" = "false" ] && [ -n "$EXECUTE_DOCKER_SCRIPT" ]; then
   EXECUTE_PRE_INSTALL="$(__trim "${EXECUTE_PRE_INSTALL//||*/}")"
   EXECUTE_DOCKER_SCRIPT="$(__trim "${EXECUTE_DOCKER_SCRIPT//||*/}")"
   __printf_color "6" "Updating the image from $HUB_IMAGE_URL with tag $HUB_IMAGE_TAG"
-  eval "$EXECUTE_PRE_INSTALL" 2>"${TMP:-/tmp}/$APPNAME.err.log" >/dev/null
+  if [ -n "$EXECUTE_PRE_INSTALL" ]; then
+    __printf_color "6" "Executing pre-install command"
+    eval "$EXECUTE_PRE_INSTALL" 2>"${TMP:-/tmp}/$APPNAME.err.log" >/dev/null
+  fi
   __printf_color "6" "Creating container $CONTAINER_NAME"
   if eval $EXECUTE_DOCKER_SCRIPT $CONTAINER_COMMANDS 2>"${TMP:-/tmp}/$APPNAME.err.log" >/dev/null; then
     sleep 10
@@ -2491,39 +2519,41 @@ if [ "$CONTAINER_INSTALLED" = "true" ] || __docker_ps_all -q; then
     __printf_spacing_color "3" "40" "This container does not have services configured"
     printf '# - - - - - - - - - - - - - - - - - - - - - - - - - -\n'
   else
-    for service in $SET_PORT; do
-      if [ "$service" != "--publish" ] && [ "$service" != " " ] && [ -n "$service" ]; then
+    for create_service in $SET_PORT; do
+      if [ "$create_service" != "--publish" ] && [ "$create_service" != " " ]; then
         unset type
         if [ "$set_listen_on_all" = "yes" ]; then
           for custom_port in $set_listen_port; do
-            set_host=""
-            set_port="$(echo "$custom_port" | awk -F ':' '{print $2}')"
-            set_service="$(echo "$custom_port" | awk -F ':' '{print $1}')"
-            service="${service//$custom_port/}"
+            set_custom_port="$(echo "$custom_port" | awk -F ':' '{print $2}' | grep '^' || echo "${custom_port//*:/}")"
+            set_custom_service="$(echo "$custom_port" | awk -F ':' '{print $1}' | grep '^' || echo "$set_custom_port")"
+            __printf_spacing_color "6" "40" "Port $set_custom_service is mapped to:" "$set_custom_port"
           done
+          create_service="${create_service//$custom_port/} "
+          unset set_custom_service set_custom_port
         fi
-        if echo "$service" | grep -q ":.*.:"; then
-          set_host="$(echo "$service" | awk -F ':' '{print $1}')"
-          set_port="$(echo "$service" | awk -F ':' '{print $3}')"
-          set_service="$(echo "$service" | awk -F ':' '{print $2}')"
-        elif [ -n "$service" ] && [ "$service" != " " ]; then
-          set_host="$SET_LISTEN"
-          set_port="$(echo "$service" | awk -F ':' '{print $1}')"
-          set_service="$(echo "$service" | awk -F ':' '{print $2}')"
-        fi
-        get_servive="$set_service"
-        set_service="${set_service//\/*/}"
-        characters=${#set_service}
-        spacing=$((40 - 19 - characters))
-        listen="${set_host//0.0.0.0/$HOST_LISTEN_ADDR}:$set_port"
-        echo "$get_servive" | grep -qE '[0-9]/tcp|[0-9]/udp' && type="${get_servive//*\//}" || unset type
-        [ -n "$type" ] && get_listen="$listen/$type" || get_listen="$listen"
-        set_listen=$(printf "%-${spacing}s" "" "$get_listen")
-        if [ -n "$listen" ]; then
-          __printf_spacing_color "6" "40" "Port $set_service is mapped to:" "$set_listen"
+        service="$create_service"
+        if [ -n "$service" ]; then
+          if echo "$service" | grep -q ":.*.:"; then
+            set_host="$(echo "$service" | awk -F ':' '{print $1}')"
+            set_port="$(echo "$service" | awk -F ':' '{print $3}')"
+            set_service="$(echo "$service" | awk -F ':' '{print $2}')"
+          elif [ -n "$service" ] && [ "$service" != " " ]; then
+            set_host="$SET_LISTEN"
+            set_port="$(echo "$service" | awk -F ':' '{print $1}')"
+            set_service="$(echo "$service" | awk -F ':' '{print $2}')"
+          fi
+          get_servive="$set_service"
+          set_service="${set_service//\/*/}"
+          listen="${set_host//0.0.0.0/$HOST_LISTEN_ADDR}:$set_port"
+          echo "$get_servive" | grep -qE '[0-9]/tcp|[0-9]/udp' && type="${get_servive//*\//}" || unset type
+          [ -n "$type" ] && get_listen="$listen/$type" || get_listen="$listen"
+          set_listen=$(printf '%s' "$get_listen")
+          if [ -n "$listen" ]; then
+            __printf_spacing_color "6" "40" "Port $set_service is mapped to:" "$set_listen"
+          fi
         fi
       fi
-      unset characters spacing get_listen type
+      unset get_listen type
     done
     printf '# - - - - - - - - - - - - - - - - - - - - - - - - - -\n'
   fi
@@ -2549,10 +2579,7 @@ if [ "$CONTAINER_INSTALLED" = "true" ] || __docker_ps_all -q; then
     __printf_color "2" "$POST_SHOW_FINISHED_MESSAGE"
     printf '# - - - - - - - - - - - - - - - - - - - - - - - - - -\n'
   fi
-  characters=${#APPNAME}
-  spacing=$((characters))
-  install_dir=$(printf "%-${spacing}s" "" "$APPDIR")
-  __printf_spacing_color "6" "40" "$APPNAME has been installed to:" "$install_dir"
+  __printf_spacing_color "6" "40" "$APPNAME has been installed to:" "$APPDIR"
   printf '# - - - - - - - - - - - - - - - - - - - - - - - - - -\n\n'
   __show_post_message
 else
